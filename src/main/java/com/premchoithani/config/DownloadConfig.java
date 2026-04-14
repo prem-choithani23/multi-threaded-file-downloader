@@ -25,6 +25,7 @@ public class DownloadConfig{
         return threadPoolSize;
     }
 
+
     public void setThreadPoolSize(int threadPoolSize) {
         this.threadPoolSize = threadPoolSize;
     }
@@ -43,6 +44,10 @@ public class DownloadConfig{
             System.out.println(e.getMessage());
         }
         return urls;
+    }
+
+    public int getTotalFiles() throws IOException {
+        return readInputUrls().size();
     }
 
 
