@@ -2,15 +2,13 @@ package com.premchoithani.progress;
 
 import com.premchoithani.config.DownloadConfig;
 
-import java.util.concurrent.atomic.AtomicInteger;
+
 
 public class ProgressRenderer {
 
     private static final ProgressRenderer INSTANCE  = new ProgressRenderer();
 
-
-    ThreadLocal<Integer> lineNumber = new ThreadLocal<>();
-    AtomicInteger lineCounter = new AtomicInteger(0);
+    private DownloadConfig config = new DownloadConfig();
 
     private ProgressRenderer(){
     }
@@ -44,20 +42,33 @@ public class ProgressRenderer {
     }
 
 
-    public synchronized void render(String fileName , int percent , int totalLines){
-        if(lineNumber.get() == null){
-            lineNumber.set(lineCounter.incrementAndGet());
-        }
+    public synchronized void render(String fileName, int percent, int totalLines , int lineNumber) {
 
-        int myLine = lineNumber.get();
+        String ansi = "\033[u"           // restore to saved position (top of area)
+                + "\033[" + (lineNumber - 1) + "B"  // move down to my line
+                + "\033[2K\r"      // clear and go to line start
+                + buildBar(fileName , percent)
+                + "\033[u"         // restore again to keep cursor stable
+                + "\033[" + totalLines + "B" ; // move to bottom (below all bars) // go back to bottom
 
-        String ansi = "\033[s"           // save cursor
-                + "\033[" + ( totalLines - myLine) + "A"  // move up
-                + "\033[2K"                  // clear line
-                + "\r"                       // go to line start
-                + buildBar(fileName, percent) // your progress bar string
-                + "\033[u";                  // restore cursor
         System.out.print(ansi);
+        System.out.flush();
+
+    }
+
+    public synchronized void complete(String fileName, int totalLines , int lineNumber) {
+
+
+        String ansi = "\033[u"                 // restore to saved position (top)
+                + "\033[" + (lineNumber - 1) + "B" // move down to my line
+                + "\033[2K\r"                 // clear line + carriage return
+                + buildBar(fileName, 100) + " ✔"
+                + "\033[u"                   // restore again
+                + "\033[" + totalLines + "B"; // move cursor back to bottom
+
+        System.out.print(ansi);
+        System.out.flush();
+
     }
 
 }
